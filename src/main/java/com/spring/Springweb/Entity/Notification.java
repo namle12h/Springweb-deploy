@@ -23,7 +23,8 @@ public class Notification {
 
     private String title;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String message;
 
     @Column(length = 20)

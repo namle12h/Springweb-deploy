@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 
 import jakarta.persistence.Table;
@@ -41,7 +42,8 @@ public class ServiceSectionItem implements Serializable {
     @Size(max = 2147483647)
     @Column(name = "Description")
     private String description;
-    @Column(columnDefinition = "NVARCHAR(MAX)",name="ExtraData")
+     @Lob
+    @Column(columnDefinition = "LONGTEXT",name="ExtraData")
     private String extraData; // JSON data cho benefit, lưu {"before": "...", "after": "...", "items": [...]}
     private Integer times;
     @Size(max = 500)
