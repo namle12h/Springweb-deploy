@@ -43,7 +43,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/home", "/index.html", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/api/auth/get-profile", "/api/auth/update-profile").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/customers").permitAll()
-                .requestMatchers( "/api/stats/**").permitAll()
+                .requestMatchers( "/api/stats/**").hasRole("ADMIN")
                 .requestMatchers("/api/reviews/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/customers/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/customers/**").hasRole("ADMIN")
@@ -80,7 +80,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173","https://bellaspapro.vercel.app")); // React app
+        configuration.setAllowedOrigins(List.of("http://localhost:5173","https://bella-spa.vercel.app")); // React app
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
