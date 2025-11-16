@@ -36,4 +36,7 @@ public abstract class BasePersonValidation {
 
     @Size(max = 500, message = "Ghi chú tối đa 500 ký tự")
     private String notes;
+
+       @Size(max = 500, message = "Ghi chú tối đa 500 ký tự")
+    private String username;
 }

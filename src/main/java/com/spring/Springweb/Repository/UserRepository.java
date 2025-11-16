@@ -1,5 +1,6 @@
 package com.spring.Springweb.Repository;
 
+import com.spring.Springweb.Entity.Customer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -25,14 +26,28 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     // Đếm số lượng khách hàng quay lại
     @Query("SELECT COUNT(u) FROM User u WHERE u.appointmentAsCustomer IS NOT EMPTY  AND u.createdAt BETWEEN :start AND :end")
-    long countReturningCustomers(@Param("start") LocalDateTime start,@Param("end") LocalDateTime end);
+    long countReturningCustomers(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     // Đếm số lượng khách hàng VIP
     @Query("SELECT COUNT(u) FROM User u WHERE u.loyaltyPoints >= 100 AND u.createdAt BETWEEN :start AND :end")
-    long countVIPCustomers(@Param("start") LocalDateTime start,@Param("end") LocalDateTime end);
+    long countVIPCustomers(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     // Đếm số lượng khách hàng trong từng nhóm độ tuổi
     @Query("SELECT COUNT(u) FROM User u  WHERE   u.dob BETWEEN :start AND :end AND u.role = 'CUSTOMER' AND u.createdAt BETWEEN :startTime AND :endTime")
-    long countByAgeGroup(@Param("start") LocalDate startDate, @Param("end") LocalDate endDate ,@Param("startTime") LocalDateTime start,@Param("endTime") LocalDateTime end);
+    long countByAgeGroup(@Param("start") LocalDate startDate, @Param("end") LocalDate endDate, @Param("startTime") LocalDateTime start, @Param("endTime") LocalDateTime end);
 
+    @Query("SELECT COUNT(u) FROM User u WHERE u.createdAt >= :startDate")
+    long countNewCustomers(LocalDateTime startDate);
+
+    // Đếm số lượng khách hàng quay lại (đã có ít nhất 1 cuộc hẹn)
+    @Query("SELECT COUNT(u) FROM User u WHERE u.appointmentAsCustomer IS NOT EMPTY")
+    long countReturningCustomers();
+
+    // Đếm số lượng khách hàng VIP
+    @Query("SELECT COUNT(u) FROM User u WHERE u.loyaltyPoints >= 100")
+    long countVIPCustomers();
+
+    boolean existsByPhone(String phone);
+
+    boolean existsByEmail(String email);
 }

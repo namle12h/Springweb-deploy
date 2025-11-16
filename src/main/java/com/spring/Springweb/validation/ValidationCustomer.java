@@ -29,7 +29,9 @@ public class ValidationCustomer extends BasePersonValidation {
         if (getDob() != null && getDob().isAfter(LocalDate.now())) {
             errors.add("Ngày sinh không được lớn hơn ngày hiện tại");
         }
-
+if (customer.getUsername() == null || customer.getUsername().trim().isEmpty()) {
+    errors.add("Username không được để trống");
+}
         return errors;
     }
 }

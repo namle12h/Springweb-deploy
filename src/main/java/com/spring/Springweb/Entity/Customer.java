@@ -11,8 +11,6 @@ import java.math.BigDecimal;
 @Setter
 public class Customer extends User {
 
-    @Column(name = "address", length = 255)
-    private String address;
 
     @Column(name = "total_spent")
     private BigDecimal totalSpent = BigDecimal.ZERO;

@@ -4,11 +4,16 @@
  */
 package com.spring.Springweb.Service;
 
+import com.spring.Springweb.DTO.CustomerRequest;
+import com.spring.Springweb.DTO.CustomerResponse;
 import com.spring.Springweb.Entity.Customer;
 import com.spring.Springweb.Repository.CustomerRepository;
+import com.spring.Springweb.Repository.UserRepository;
+import java.time.LocalDateTime;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,27 +23,40 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
 
+    @Autowired
     private final CustomerRepository customerRepository;
+    @Autowired
+    private final UserRepository userRepository;
+    @Autowired
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public Customer create(Customer customer) {
-        // Check phone duplicate
-        if (customer.getPhone() != null && customerRepository.existsByPhone(customer.getPhone())) {
-            throw new IllegalArgumentException("Số điện thoại đã tồn tại!");
+    public CustomerResponse createCustomer(CustomerRequest request) {
+        // Kiểm tra email và số điện thoại đã tồn tại chưa
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
+        if (userRepository.findByPhone(request.getPhone()).isPresent()) {
+            throw new RuntimeException("Phone number already exists");
         }
 
-        // Check email duplicate (nếu cần)
-        if (customer.getEmail() != null && customerRepository.existsByEmail(customer.getEmail())) {
-            throw new IllegalArgumentException("Email đã tồn tại!");
-        }
+        
 
-        // ✅ Mã hóa mật khẩu trước khi lưu
-        if (customer.getPasswordHash() != null) {
-            customer.setPasswordHash(passwordEncoder.encode(customer.getPasswordHash()));
-        }
+        // Tạo mới đối tượng Customer
+        Customer newCustomer = new Customer();
+        newCustomer.setName(request.getName());
+        newCustomer.setEmail(request.getEmail());
+        newCustomer.setPhone(request.getPhone());
+        newCustomer.setPasswordHash(passwordEncoder.encode(request.getPassword())); // Mã hóa mật khẩu
+        newCustomer.setRole("CUSTOMER");
+        newCustomer.setCreatedAt(LocalDateTime.now());
+        newCustomer.setUsername(request.getEmail());
 
-        return customerRepository.save(customer);
+        // Lưu khách hàng mới vào cơ sở dữ liệu
+        userRepository.save(newCustomer);
+
+        // Trả về phản hồi
+        return new CustomerResponse(newCustomer.getId(), newCustomer.getName(), newCustomer.getEmail());
     }
 
     @Override
@@ -78,11 +96,11 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     public boolean existsByEmail(String email) {
-    return customerRepository.findByEmail(email).isPresent();
-}
+        return customerRepository.findByEmail(email).isPresent();
+    }
 
-public boolean existsByPhone(String phone) {
-    return customerRepository.findByPhone(phone).isPresent();
-}
+    public boolean existsByPhone(String phone) {
+        return customerRepository.findByPhone(phone).isPresent();
+    }
 
 }
