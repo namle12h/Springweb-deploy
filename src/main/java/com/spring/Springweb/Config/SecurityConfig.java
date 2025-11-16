@@ -43,7 +43,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/home", "/index.html", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/api/auth/get-profile", "/api/auth/update-profile").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/customers").permitAll()
-                .requestMatchers( "/api/stats/**").hasRole("ADMIN")
+                .requestMatchers( "/api/stats/**").permitAll()
                 .requestMatchers("/api/reviews/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/customers/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/customers/**").hasRole("ADMIN")
