@@ -32,12 +32,6 @@ public class ProductController {
 
     private final ProductService productService;
 
-    // ✅ Lấy tất cả sản phẩm
-//    @GetMapping
-//    public ResponseEntity<List<ProductDTO>> getAllProducts() {
-//        List<ProductDTO> products = productService.getAll();
-//        return ResponseEntity.ok(products);
-//    }
     @GetMapping
     public Page<ProductDTO> getProducts(
             @RequestParam(defaultValue = "1") int page,

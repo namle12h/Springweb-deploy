@@ -19,6 +19,7 @@ import com.spring.Springweb.Service.VNPayService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 
 @RestController
 public class PaymentController {
@@ -34,6 +35,9 @@ public class PaymentController {
 
     @Autowired
     private AppointmentRepository appointmentRepository;
+
+    @Value("${payment.frontend-return-url}")
+    private String frontendReturnBase;
 
     // ✅ Tạo link thanh toán cho 1 hóa đơn
     @GetMapping("/create-payment")
@@ -61,13 +65,12 @@ public class PaymentController {
         Invoice invoice = invoiceRepository.findByTxnRef(txnRef)
                 .orElseThrow(() -> new RuntimeException("Invoice not found for txnRef: " + txnRef));
 
-
         if ("00".equals(responseCode)) {
             // ✅ Cập nhật trạng thái hóa đơn
             invoice.setStatus("PAID");
             invoice.setUpdatedAt(LocalDateTime.now());
             if (transactionNo != null) {
-                invoice.setTransactionId(transactionNo); 
+                invoice.setTransactionId(transactionNo);
             }
 
             Payment payment = new Payment();
@@ -85,17 +88,17 @@ public class PaymentController {
             }
             invoiceRepository.save(invoice);
 
-            // ✅ Sau khi cập nhật xong, redirect về FE
-//        response.sendRedirect("http://localhost:5173/payment-return?vnp_ResponseCode=00&vnp_TxnRef=" + txnRef);
             response.sendRedirect(
-                    "http://localhost:5173/payment-return?vnp_ResponseCode=" + responseCode
+                    frontendReturnBase + "/payment-return"
+                    + "?vnp_ResponseCode=" + responseCode
                     + "&vnp_TransactionStatus=" + responseCode
                     + "&vnp_TxnRef=" + txnRef
             );
+
         } else {
             invoice.setStatus("FAILED");
             invoiceRepository.save(invoice);
-            response.sendRedirect("http://localhost:5173/payment-return?vnp_ResponseCode=" + responseCode + "&vnp_TxnRef=" + txnRef);
+            response.sendRedirect(frontendReturnBase + responseCode + "&vnp_TxnRef=" + txnRef);
         }
     }
 }

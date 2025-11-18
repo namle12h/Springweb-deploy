@@ -31,12 +31,7 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
-    // @GetMapping("/all")
-    // public ResponseEntity<List<Review>> getAllReviews() {
-    //     return ResponseEntity.ok(reviewService.getAllReviews());
-    // }
 
-    // 🔹 Lấy danh sách review theo Product hoặc Service
     @GetMapping
     public ResponseEntity<List<Review>> getReviews(
             @RequestParam String type, // "Product" hoặc "Service"
@@ -46,11 +41,6 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReviews(type, refId, approvedOnly));
     }
 
-    // 🔹 Thêm mới review
-//    @PostMapping
-//    public ResponseEntity<Review> addReview(@RequestBody Review review) {
-//        return ResponseEntity.ok(reviewService.addReview(review));
-//    }
 
     // 🔹 Sửa review
     @PutMapping("/{id}")

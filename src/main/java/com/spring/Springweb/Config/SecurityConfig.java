@@ -23,6 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.spring.Springweb.filter.JwtFilter;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 @EnableWebSecurity
@@ -30,6 +31,9 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+
+    @Value("${cors.allowed-origins}")
+    private String corsAllowedOrigins;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -43,7 +47,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/home", "/index.html", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/api/auth/get-profile", "/api/auth/update-profile").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/customers").permitAll()
-                .requestMatchers( "/api/stats/**").permitAll()
+                .requestMatchers("/api/stats/**").permitAll()
                 .requestMatchers("/api/reviews/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/customers/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/customers/**").hasRole("ADMIN")
@@ -80,7 +84,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173","https://bella-spa.vercel.app")); // React app
+        String[] origins = corsAllowedOrigins.split(",");
+        configuration.setAllowedOrigins(List.of(origins));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
