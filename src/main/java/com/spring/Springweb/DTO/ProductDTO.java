@@ -15,11 +15,20 @@ public class ProductDTO {
     private String name;
     private String sku;
     private String uom;
-    private String category;
+    // private String category;
     private String brand;
     private String description;
     private BigDecimal costPrice;
     private BigDecimal salePrice;
+    private BigDecimal discountPrice;    // 🔥 giá khuyến mãi
+    private Integer discountPercent;     // 🔥 % giảm
+        // ===== THỜI TRANG =====
+    private String size;                 // S, M, L, XL
+    private String color;                // Đen, Trắng, Xanh
+
+    // ===== KHUYẾN MÃI =====
+    private LocalDate discountStartDate;
+    private LocalDate discountEndDate;
     private BigDecimal stockQty;
     private Integer reorderLevel;
     private LocalDate expDate;
@@ -30,6 +39,9 @@ public class ProductDTO {
      private String createdByName;
     private Integer updatedBy;
     private String updatedByName;
+    private Integer categoryId;
     private ProductDetailsDTO details; // ✅ liên kết 1-1
     private List<ProductImageDTO> images; // ✅ liên kết 1-n
+
+
 }

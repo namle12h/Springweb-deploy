@@ -4,7 +4,6 @@
  */
 package com.spring.Springweb.Service;
 
-
 import com.spring.Springweb.DTO.ServiceProductUsageDTO;
 import com.spring.Springweb.Entity.Product;
 import com.spring.Springweb.Entity.ServiceProductUsage;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ServiceProductUsageServiceImpl implements ServiceProductUsageService{
+public class ServiceProductUsageServiceImpl implements ServiceProductUsageService {
 
     private final ServiceProductUsageRepository usageRepo;
     private final ProductRepository productRepo;
@@ -63,7 +62,11 @@ public class ServiceProductUsageServiceImpl implements ServiceProductUsageServic
                 .sortOrder(spu.getSortOrder())
                 .productName(spu.getProduct() != null ? spu.getProduct().getName() : null)
                 .brand(spu.getProduct() != null ? spu.getProduct().getBrand() : null)
-                .category(spu.getProduct() != null ? spu.getProduct().getCategory() : null)
+                .category(
+                        spu.getProduct() != null && spu.getProduct().getCategory() != null
+                        ? spu.getProduct().getCategory().getName()
+                        : null
+                )
                 .salePrice(spu.getProduct() != null ? spu.getProduct().getSalePrice() : null)
                 .imageUrl(spu.getProduct() != null ? spu.getProduct().getImageUrl() : null)
                 .build();

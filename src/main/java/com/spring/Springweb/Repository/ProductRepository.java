@@ -1,35 +1,3 @@
- ///*
-// * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-// * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
-// */
-//package com.spring.Springweb.Repository;
-//
-//import java.util.List;
-//
-//import org.springframework.data.jpa.repository.JpaRepository;
-//import org.springframework.data.jpa.repository.Query;
-//
-//import com.spring.Springweb.Entity.Product;
-//
-///**
-// *
-// * @author ADMIN
-// */
-//public interface ProductRepository extends JpaRepository<Product, Integer> {
-//
-//    @Query("""
-//    SELECT DISTINCT p
-//    FROM Product p
-//    LEFT JOIN FETCH p.details
-//    LEFT JOIN FETCH p.images
-//    LEFT JOIN FETCH User u1 ON p.createdBy = u1.id
-//    LEFT JOIN FETCH User u2 ON p.updatedBy = u2.id
-//""")
-//    List<Product> findAllWithDetailsAndUsers();
-//
-//}
-
-
 package com.spring.Springweb.Repository;
 
 import java.util.List;
@@ -52,8 +20,43 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     Page<Integer> findProductIds(Pageable pageable);
 
     // ✅ Bước 2: Lấy sản phẩm đầy đủ (fetch join để không lazy)
-    @EntityGraph(attributePaths = {"details", "images", "createdBy", "updatedBy"})
-    @Query("SELECT p FROM Product p WHERE p.id IN :ids ORDER BY p.id DESC")
-    List<Product> findAllWithDetailsAndUsersByIds(@Param("ids") List<Integer> ids);
+//    @EntityGraph(attributePaths = {"details", "images", "createdBy", "updatedBy"})
+//    @Query("SELECT p FROM Product p WHERE p.id IN :ids ORDER BY p.id DESC")
+//    List<Product> findAllWithDetailsAndUsersByIds(@Param("ids") List<Integer> ids);
+//    
+    @Query("""
+        SELECT p.id
+        FROM Product p
+        WHERE p.category.id = :categoryId
+        ORDER BY p.id DESC
+    """)
+    Page<Integer> findProductIdsByCategory(
+            @Param("categoryId") Integer categoryId,
+            Pageable pageable
+    );
+
+    @Query("""
+        SELECT DISTINCT p
+        FROM Product p
+        LEFT JOIN FETCH p.details
+        LEFT JOIN FETCH p.images
+        WHERE p.id IN :ids
+    """)
+    List<Product> findAllWithDetailsAndUsersByIds(
+            @Param("ids") List<Integer> ids
+    );
+
+    @Query("""
+SELECT p FROM Product p
+WHERE p.category.id = :categoryId
+AND p.id <> :productId
+AND p.active = true
+ORDER BY p.discountPercent DESC, p.id DESC
+""")
+    List<Product> findRelatedProducts(
+            @Param("categoryId") Integer categoryId,
+            @Param("productId") Integer productId,
+            Pageable pageable
+    );
 
 }

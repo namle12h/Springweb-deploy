@@ -21,4 +21,13 @@ public interface ProductService {
     void delete(Integer id);
 
     public Page<ProductDTO> getAllProducts(int page, int limit);
+
+    Page<ProductDTO> getProductsByCategory(
+            Integer categoryId,
+            int page,
+            int limit
+    );
+    
+    List<ProductDTO> getRelatedProducts(Integer productId, int limit) ;
+
 }

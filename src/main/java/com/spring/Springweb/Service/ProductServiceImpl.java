@@ -2,6 +2,7 @@ package com.spring.Springweb.Service;
 
 import com.spring.Springweb.DTO.*;
 import com.spring.Springweb.Entity.*;
+import com.spring.Springweb.Repository.CategoryRepository;
 import com.spring.Springweb.Repository.ProductRepository;
 import com.spring.Springweb.Repository.UserRepository;
 import com.spring.Springweb.util.JwtUtil;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -34,6 +36,7 @@ public class ProductServiceImpl implements ProductService {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final HttpServletRequest request;
+    private final CategoryRepository categoryRepository;
 
 //     🧩 Lấy danh sách tất cả sản phẩm
 //     @Override
@@ -100,6 +103,12 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product product = toEntity(dto);
+        calculateDiscount(product);
+
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
+
+        product.setCategory(category);
         product.setCreatedBy(user.getId());
         product.setUpdatedBy(user.getId());
 
@@ -125,7 +134,11 @@ public class ProductServiceImpl implements ProductService {
         product.setName(dto.getName());
         product.setSku(dto.getSku());
         product.setUom(dto.getUom());
-        product.setCategory(dto.getCategory());
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
+
+        product.setCategory(category);
+
         product.setBrand(dto.getBrand());
         product.setDescription(dto.getDescription());
         product.setCostPrice(dto.getCostPrice());
@@ -135,6 +148,12 @@ public class ProductServiceImpl implements ProductService {
         product.setExpDate(dto.getExpDate());
         product.setActive(dto.getActive());
         product.setUpdatedBy(user.getId());
+        product.setSize(dto.getSize());
+        product.setColor(dto.getColor());
+        product.setDiscountPercent(dto.getDiscountPercent());
+        calculateDiscount(product);
+        product.setDiscountStartDate(dto.getDiscountStartDate());
+        product.setDiscountEndDate(dto.getDiscountEndDate());
 
         // ✅ Cập nhật chi tiết
         if (dto.getDetails() != null) {
@@ -221,11 +240,21 @@ public class ProductServiceImpl implements ProductService {
                 .name(p.getName())
                 .sku(p.getSku())
                 .uom(p.getUom())
-                .category(p.getCategory())
+                .categoryId(
+                        p.getCategory() != null ? p.getCategory().getId() : null
+                )
                 .brand(p.getBrand())
                 .description(p.getDescription())
                 .costPrice(p.getCostPrice())
                 .salePrice(p.getSalePrice())
+                .discountPrice(p.getDiscountPrice())
+                .discountPercent(p.getDiscountPercent())
+                // 👕 thời trang
+                .size(p.getSize())
+                .color(p.getColor())
+                // 🔥 khuyến mãi
+                .discountStartDate(p.getDiscountStartDate())
+                .discountEndDate(p.getDiscountEndDate())
                 .stockQty(p.getStockQty())
                 .reorderLevel(p.getReorderLevel())
                 .expDate(p.getExpDate())
@@ -248,11 +277,18 @@ public class ProductServiceImpl implements ProductService {
                 .name(dto.getName())
                 .sku(dto.getSku())
                 .uom(dto.getUom())
-                .category(dto.getCategory())
                 .brand(dto.getBrand())
                 .description(dto.getDescription())
                 .costPrice(dto.getCostPrice())
                 .salePrice(dto.getSalePrice())
+                .discountPrice(dto.getDiscountPrice())
+                .discountPercent(dto.getDiscountPercent())
+                // 👕 thời trang
+                .size(dto.getSize())
+                .color(dto.getColor())
+                // 🔥 khuyến mãi
+                .discountStartDate(dto.getDiscountStartDate())
+                .discountEndDate(dto.getDiscountEndDate())
                 .stockQty(dto.getStockQty())
                 .reorderLevel(dto.getReorderLevel())
                 .expDate(dto.getExpDate())
@@ -339,6 +375,92 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductDTO> getAll() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    private void calculateDiscount(Product product) {
+        if (product.getSalePrice() != null && product.getDiscountPercent() != null) {
+
+            if (product.getDiscountPercent() < 0 || product.getDiscountPercent() > 100) {
+                throw new RuntimeException("Phần trăm giảm giá phải từ 0–100");
+            }
+
+            BigDecimal percent = BigDecimal
+                    .valueOf(product.getDiscountPercent())
+                    .divide(BigDecimal.valueOf(100));
+
+            BigDecimal discountPrice = product.getSalePrice()
+                    .subtract(product.getSalePrice().multiply(percent));
+
+            product.setDiscountPrice(discountPrice);
+        } else {
+            product.setDiscountPrice(null);
+        }
+    }
+
+    @Override
+    public Page<ProductDTO> getProductsByCategory(
+            Integer categoryId,
+            int page,
+            int limit
+    ) {
+        Pageable pageable = PageRequest.of(
+                page - 1,
+                limit,
+                Sort.by(Sort.Direction.DESC, "id")
+        );
+
+        // 1️⃣ Lấy ID theo category
+        Page<Integer> idPage
+                = productRepository.findProductIdsByCategory(categoryId, pageable);
+
+        List<Integer> ids = idPage.getContent();
+
+        if (ids.isEmpty()) {
+            return new PageImpl<>(
+                    Collections.emptyList(),
+                    pageable,
+                    idPage.getTotalElements()
+            );
+        }
+
+        // 2️⃣ Lấy full product
+        List<Product> products
+                = productRepository.findAllWithDetailsAndUsersByIds(ids);
+
+        // 3️⃣ Loại trùng + giữ thứ tự
+        Map<Integer, Product> uniqueMap = new LinkedHashMap<>();
+        for (Product p : products) {
+            uniqueMap.put(p.getId(), p);
+        }
+
+        List<ProductDTO> dtoList = uniqueMap.values().stream()
+                .sorted((a, b) -> b.getId().compareTo(a.getId()))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(
+                dtoList,
+                pageable,
+                idPage.getTotalElements()
+        );
+    }
+
+    @Override
+    public List<ProductDTO> getRelatedProducts(Integer productId, int limit) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+        Integer categoryId = product.getCategory().getId();
+
+        List<Product> products = productRepository.findRelatedProducts(
+                categoryId,
+                productId,
+                PageRequest.of(0, limit) // ✅ SỬA Ở ĐÂY
+        );
+
+        return products.stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
 }

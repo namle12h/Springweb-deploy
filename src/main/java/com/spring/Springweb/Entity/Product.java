@@ -33,9 +33,6 @@ public class Product {
     private String uom;
 
     @Size(max = 100)
-    private String category;
-
-    @Size(max = 100)
     private String brand;
 
     @Column(length = 255)
@@ -43,6 +40,17 @@ public class Product {
 
     private BigDecimal costPrice;
     private BigDecimal salePrice;
+
+    private BigDecimal discountPrice;    // 🔥 giá khuyến mãi
+    private Integer discountPercent;     // 🔥 % giảm (optional)
+    @Column(length = 20)
+    private String size;                 // S, M, L, XL
+
+    @Column(length = 30)
+    private String color;
+
+    private LocalDate discountStartDate;
+    private LocalDate discountEndDate;
 
     @NotNull
     private BigDecimal stockQty;
@@ -83,4 +91,9 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ProductImage> images = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
 }

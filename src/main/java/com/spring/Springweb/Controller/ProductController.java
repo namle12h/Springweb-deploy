@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.spring.Springweb.DTO.ProductDTO;
-import com.spring.Springweb.Entity.Product;
 import com.spring.Springweb.Service.ProductService;
+import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -76,4 +76,26 @@ public class ProductController {
         productService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/by-category")
+    public Page<ProductDTO> getByCategory(
+            @RequestParam Integer categoryId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "8") int limit
+    ) {
+        return productService.getProductsByCategory(
+                categoryId,
+                page,
+                limit
+        );
+    }
+
+    @GetMapping("/{id}/related")
+    public List<ProductDTO> getRelated(
+            @PathVariable Integer id,
+            @RequestParam(defaultValue = "4") int limit
+    ) {
+        return productService.getRelatedProducts(id, limit);
+    }
+
 }
