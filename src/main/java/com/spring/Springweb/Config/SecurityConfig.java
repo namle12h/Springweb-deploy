@@ -22,6 +22,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.spring.Springweb.filter.JwtFilter;
+import java.util.Arrays;
 
 import lombok.RequiredArgsConstructor;
 
@@ -86,8 +87,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        String[] origins = corsAllowedOrigins.split(",");
-        configuration.setAllowedOrigins(List.of(origins));
+        List<String> origins = Arrays.stream(corsAllowedOrigins.split(","))
+                .map(String::trim) // 🔥 QUAN TRỌNG
+                .toList();
+
+        configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
